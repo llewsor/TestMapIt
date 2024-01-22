@@ -1,0 +1,11 @@
+Abstraction/obj/
+Repository/obj/
+TestMapIT/bin/
+Repository/bin/Debug/net8.0/Repository.pdb
+Repository/bin/
+.vs/
+TestMapIT/obj/Debug/net8.0/apphost.exe
+TestMapIT/obj/Debug/net8.0/staticwebassets.build.json
+TestMapIT/obj/Debug/net8.0/staticwebassets.pack.json
+TestMapIT/obj/
+Tests/obj/

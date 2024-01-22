@@ -1,0 +1,177 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+
+@inject IViewLocalizer Localizer
+
+@{
+	ViewData["Title"] = "Item Master";
+}
+@model List<ItemMasterListViewDTO>
+
+<div class="card">
+	<div class="card-body">
+		<div class="card-title">
+			<div class="row">
+				<h2 class="float-start">@Localizer["ItemTitleListing"]</h2>
+			</div>
+			<div class="row mt-2">
+				<div class="input-group" style="flex: 6">
+					<label style="margin: 7px;">@Localizer["Search"]: </label>
+					<input type="text" id="txtSearch" class="form-control" placeholder="@Localizer["SearchCodeDescription"]">
+					<button class="btn btn-outline-secondary" type="button" id="btnClear" onclick="Clear()">@Localizer["Clear"]</button>
+				</div>
+				<div style="flex: 4; text-align: right;">
+					<a class="btn btn-success float-end" asp-controller="ItemMaster" asp-action="Item">@Localizer["CreateNew"]</a>
+				</div>
+			</div>
+		</div>
+		<table class="table table-bordered table-striped" id="tblItems">
+			<thead class="bg-dark text-white">
+				<tr>
+					<th>Item Code</th>
+					<th>Description</th>
+					<th>Active</th>
+					@* <th>Customer Description</th> *@
+					<th class="d-none d-md-table-cell">Sales</th>
+					<th class="d-none d-md-table-cell">Stock</th>
+					<th class="d-none d-lg-table-cell">Purchased</th>
+					@* <th>Barcode</th> *@
+					@* <th class="d-none d-lg-table-cell">Managed Item By</th> *@
+					@* <th class="d-none d-xl-table-cell">Minimum</th>
+					<th class="d-none d-xl-table-cell">Maximum</th> *@
+					@* <th>Remarks</th> *@
+					@* <th>Image</th> *@
+					<th class="col-2">Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (ItemMasterListViewDTO item in Model)
+				{
+					<tr>
+						<td>
+							<a class="link-info text-dark" onclick="View(this)">@Html.DisplayFor(i => item.ItemCode)</a>
+							@Html.HiddenFor(i => item.ItemCode)
+						</td>
+						<td>
+							@Html.DisplayFor(i => item.Description)
+						</td>
+						<td>
+							@Html.DisplayFor(i => item.Active)
+						</td>
+						@* <td>
+					@Html.DisplayFor(i => item.CustomerDescription)
+					</td> *@
+						<td class="d-none d-md-table-cell">
+							@Html.DisplayFor(i => item.SalesItem)
+						</td>
+						<td class="d-none d-md-table-cell">
+							@Html.DisplayFor(i => item.StockItem)
+						</td>
+						<td class="d-none d-lg-table-cell">
+							@Html.DisplayFor(i => item.PurchasedItem)
+						</td>
+						@* <td>
+					@Html.DisplayFor(i => item.Barcode)
+					</td> *@
+						@* <td class="d-none d-lg-table-cell">
+					@Html.DisplayFor(i => item.ManageItemBy)
+					</td> *@
+						@* <td class="d-none d-xl-table-cell">
+					@Html.DisplayFor(i => item.MinimumInventory)
+					</td>
+					<td class="d-none d-xl-table-cell">
+					@Html.DisplayFor(i => item.MaximumInventory)
+					</td>*@
+						@*  <td>
+					@Html.DisplayFor(i => item.Remarks)
+					</td> *@
+						@*  <td>
+					<img src="@Url.Content(item.ImagePath)" alt="Image" class="img-thumbnail" />
+					</td> *@
+						<td>
+							<a class="btn btn-primary" onclick="View(this)">@Localizer["View"]</a> |  <a class="btn btn-danger" onclick="Delete(this)">@Localizer["Delete"]</a>
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="mdlMessage" tabindex="-1" aria-labelledby="mdlMessageLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="mdlMessageLabel"></h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<p id="mdlMessageContent"></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	$(document).ready(function () {
+		$("#txtSearch").on("keyup", function () {
+			var value = $(this).val().toLowerCase();
+
+			$("#tblItems tbody tr").filter(function () {
+				var firstCol = $(this).find("td:first").text().toLowerCase();
+				var secondCol = $(this).find("td:nth-child(2)").text().toLowerCase();
+				$(this).toggle(firstCol.indexOf(value) > -1 || secondCol.indexOf(value) > -1);
+			});
+		});
+	});
+
+	function Clear() {
+		$('#txtSearch').val('');
+		$('#txtSearch').keyup();
+	}
+
+	function View(element) {
+		var itemCode = $(element).closest('tr').find('input[type=hidden]').val();
+		window.location.href = "/ItemMaster/Item?itemCode=" + itemCode;
+	}
+
+	function Delete(element) {
+		var itemCode = $(element).closest('tr').find('input[type=hidden]').val();
+
+		$.ajax({
+			type: 'DELETE',
+			url: '/ItemMaster/Delete',
+			data: {
+				itemCode: itemCode
+			},
+			success: function (data) {
+				if (data.success) {
+					$('#mdlMessageLabel').text('Success');
+					$('#mdlMessageContent').text(data.message);
+					$('#mdlMessage').modal('show');
+
+					$(element).closest('tr').remove();
+				}
+				else {
+					$('#mdlMessageLabel').text('Error');
+					$('#mdlMessageContent').text('Error while Deleting! ' + data.Error);
+					$('#mdlMessage').modal('show');
+				}
+			},
+			failure: function (err) {
+				$('#mdlMessageLabel').text('Error');
+				$('#mdlMessageContent').text('Action failed!');
+				$('#mdlMessage').modal('show');
+			},
+			error: function (xhr, ajaxOptions, thrownError) {
+				$('#mdlMessageLabel').text('Error');
+				$('#mdlMessageContent').text('Error occured! ' + xhr.responseText);
+				$('#mdlMessage').modal('show');
+			}
+		});
+	}
+
+</script>

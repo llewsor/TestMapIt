@@ -1,0 +1,389 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+
+@inject IViewLocalizer Localizer
+
+@{
+	ViewData["Title"] = "Item Master";
+}
+
+@model ItemMasterDTO;
+
+<div id="alertPlaceholder"></div>
+<div class="card">
+	<div class="card-title">
+		<h2 class="mt-4 mx-4">@Localizer["ItemMaster"]</h2>
+	</div>
+	@using (Html.BeginForm("Save", "ItemMaster", FormMethod.Post, new { enctype = "multipart/form-data", id = "frmSave" }))
+	{
+		<div class="card-body">
+			<div class="row m-2">
+				<div class="col">
+					<div class="form-group">
+						<label>@Html.DisplayNameFor(m => m.ItemCode)</label>
+						<input type="text" id="txtItemCode" value="@Model.ItemCode" name="ItemCode" class="form-control" />
+						<input type="hidden" id="hdnItemCode" name="Code" value="@Model.ItemCode" />
+					</div>
+				</div>
+			</div>
+			<div class="row m-2">
+				<div class="col">
+					<div class="form-group">
+						<label>@Html.DisplayNameFor(m => m.Description)</label>
+						<textarea id="txtDescription" name="Description" class="form-control">@Model.Description</textarea>
+					</div>
+				</div>
+			</div>
+			<div class="row m-2">
+				<div class="col">
+					<div class="form-group">
+						<label>@Html.DisplayNameFor(m => m.CustomerDescription)</label>
+						<textarea id="txtCustomerDescription" name="CustomerDescription" class="form-control">@Model.CustomerDescription</textarea>
+					</div>
+				</div>
+			</div>
+			<div class="row m-2">
+				<div class="col">
+					<div class="form-group">
+						<label>@Html.DisplayNameFor(m => m.Barcode)</label>
+						<input type="text" id="txtBarcode" value="@Model.Barcode" name="Barcode" class="form-control" />
+					</div>
+				</div>
+			</div>
+			<div class="row m-2">
+				<div class="col">
+					<div class="form-group">
+						<label>@Html.DisplayNameFor(m => m.ManageItemBy)</label>
+						<select id="ddlManageItemBy" name="ManageItemBy" value="@Model.ManageItemBy" class="form-control">
+							<option value="0">None</option>
+							<option value="1">Serial</option>
+							<option value="2">Batch</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="row m-2">
+				<div class="col">
+					<div class="form-group">
+						<label>@Html.DisplayNameFor(m => m.MinimumInventory)</label>
+						<input type="number" id="txtMinimumInventory" value="@Model.MinimumInventory" name="MininumInventory" class="form-control" />
+					</div>
+				</div>
+			</div>
+			<div class="row m-2">
+				<div class="col">
+					<div class="form-group">
+						<label>@Html.DisplayNameFor(m => m.MaximumInventory)</label>
+						<input type="number" id="txtMaximumInventory" value="@Model.MaximumInventory" name="MaximumInventory" class="form-control" />
+					</div>
+				</div>
+			</div>
+			<div class="row m-4">
+				<div class="col-3">
+					<div class="form-group">
+						<label>@Html.DisplayNameFor(m => m.Active)</label>
+						@Html.CheckBoxFor(m => m.Active, new
+							{
+								@id = "chkActive",
+								@checked = Model.Active,
+								@name = "Active"
+							})
+					</div>
+				</div>
+				<div class="col-3">
+					<div class="form-group">
+						<label>@Html.DisplayNameFor(m => m.SalesItem)</label>
+						@Html.CheckBoxFor(m => m.SalesItem, new
+							{
+								@id = "chkSalesItem",
+								@checked = Model.SalesItem,
+								@name = "SalesItem"
+							})
+					</div>
+				</div>
+				<div class="col-3">
+					<div class="form-group">
+						<label>@Html.DisplayNameFor(m => m.StockItem)</label>
+						@Html.CheckBoxFor(m => m.StockItem, new
+							{
+								@id = "chkStockItem",
+								@checked = Model.StockItem,
+								@name = "StockItem"
+							})
+					</div>
+				</div>
+				<div class="col-3">
+					<div class="form-group">
+						<label>@Html.DisplayNameFor(m => m.PurchasedItem)</label>
+						@Html.CheckBoxFor(m => m.PurchasedItem, new
+							{
+								@id = "chkPurchasedItem",
+								@checked = Model.PurchasedItem,
+								@name = "PurchasedItem"
+							})
+					</div>
+				</div>
+			</div>
+			<div class="row m-2">
+				<div class="form-group">
+					<label>@Html.DisplayNameFor(m => m.Remarks)</label>
+					<textarea id="txtRemarks" name="Remarks" class="form-control">@Model.Remarks</textarea>
+				</div>
+			</div>
+			<div class="row m-2">
+				<label>@Html.DisplayNameFor(m => m.ImagePath)</label>
+				<div>
+					<img id="imgItem" src="@Url.Content(@Model.ImagePath)" class="m-2 rounded mx-auto d-block imgSize" />
+				</div>
+				<input type="file" class="form-control" value="@Model.Image" id="fileImage" name="Image" accept="image/*" onchange="loadFile(event)" />
+				<input type="hidden" name="ImagePath" value="@Model.ImagePath" id="hdnImagePath" />
+			</div>
+			<div class="row m-2">
+				<div class="col">
+					<div class="form-group m-2 float-end">
+						<a onclick="handleSave()" class="btn btn-success">@Localizer["Save"]</a>
+						<a id="btnDelete" class="btn btn-danger" onclick="handleDelete()">@Localizer["Delete"]</a>
+						<a class="btn btn-secondary" onclick="backToList()">@Localizer["Cancel"]</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="mdlMessage" tabindex="-1" aria-labelledby="mdlMessageLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="mdlMessageLabel"></h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<p id="mdlMessageContent"></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style type="text/css">
+	.imgSize {
+		max-width: 50%;
+		max-height: auto;
+	}
+</style>
+
+<script type="text/javascript">
+	var itemUpload;
+
+	$(document).ready(function () {
+		if ($('#hdnItemCode').val().length > 0) {
+			$('#btnDelete').show();
+		}
+		else {
+			$('#btnDelete').hide();
+		}
+	});
+
+	var loadFile = function (event) {
+		if (event.target.files.length > 0) {
+			itemUpload = event.target.files[0];
+
+			var output = document.getElementById('imgItem');
+			output.src = URL.createObjectURL(event.target.files[0]);
+			output.onload = function () {
+				URL.revokeObjectURL(output.src);
+			}
+		}
+	};
+
+	function backToList() {
+		window.location.href = "/ItemMaster";
+	}
+
+	function clearFields() {
+		$('#hdnItemCode').val("");
+		$('#txtItemCode').val("");
+		$('#txtDescription').val("");
+		$('#txtCustomerDescription').val("");
+		$('#txtBarcode').val("");
+		$('#ddlManageItemBy').val("");
+		$('#txtMinimumInventory').val("");
+		$('#txtMaximumInventory').val("");
+
+		$('#chkActive').prop('checked', false)
+		$('#chkSalesItem').prop('checked', false)
+		$('#chkStockItem').prop('checked', false)
+		$('#chkPurchasedItem').prop('checked', false)
+
+		$('#txtRemarks').val("");
+		$('#fileImage').val("");
+		$('#hdnImagePath').val("");
+		var $image = $('#imgItem');
+		$image.removeAttr('src').replaceWith($image.clone());
+
+		$('#btnDelete').hide();
+	}
+
+	function handleDelete() {
+		var itemCode = $('#hdnItemCode').val();
+
+		$.ajax({
+			type: 'DELETE',
+			url: '/ItemMaster/Delete',
+			data: {
+				itemCode: itemCode
+			},
+			success: function (data) {
+				if (data.success) {
+					$('#mdlMessageLabel').text('Success');
+					$('#mdlMessageContent').text(data.message);
+					$('#mdlMessage').modal('show');
+					clearFields();
+				}
+				else {
+					$('#mdlMessageLabel').text('Error');
+					$('#mdlMessageContent').text('Error while Deleting! ' + data.Error);
+					$('#mdlMessage').modal('show');
+				}
+			},
+			failure: function (err) {
+				$('#mdlMessageLabel').text('Error');
+				$('#mdlMessageContent').text('Action failed!');
+				$('#mdlMessage').modal('show');
+			},
+			error: function (xhr, ajaxOptions, thrownError) {
+				$('#mdlMessageLabel').text('Error');
+				$('#mdlMessageContent').text('Error occured! ' + xhr.responseText);
+				$('#mdlMessage').modal('show');
+			}
+		});
+	}
+
+	function handleSave(form) {
+		var valid = true;
+
+		//Validations
+		var code = $('#hdnItemCode').val();
+		var itemCode = $('#txtItemCode').val();
+		if ((itemCode != '' && itemCode != null) || itemCode.length > 25) {
+			$('#txtItemCode').css('border-color', '#ccc');
+		} else {
+			$('#txtItemCode').css('border-color', 'red');
+			valid = false;
+		}
+
+		var description = $('#txtDescription').val();
+		if (description != '' && description != null) {
+			$('#txtDescription').css('border-color', '#ccc');
+		} else {
+			$('#txtDescription').css('border-color', 'red');
+			valid = false;
+		}
+
+		var barcode = $('#txtBarcode').val();
+		if (barcode != '' && barcode != null) {
+			$('#txtBarcode').css('border-color', '#ccc');
+		} else {
+			$('#txtBarcode').css('border-color', 'red');
+			valid = false;
+		}
+
+		var manageItemBy = $('#ddlManageItemBy').val();
+		if (manageItemBy != '' && manageItemBy != null) {
+			$('#ddlManageItemBy').css('border-color', '#ccc');
+		} else {
+			$('#ddlManageItemBy').css('border-color', 'red');
+			valid = false;
+		}
+
+		var mimimumInventory = $('#txtMinimumInventory').val();
+		if (mimimumInventory != '' && mimimumInventory != null) {
+			$('#txtMinimumInventory').css('border-color', '#ccc');
+		} else {
+			$('#txtMinimumInventory').css('border-color', 'red');
+			valid = false;
+		}
+
+		var maximumInventory = $('#txtMaximumInventory').val();
+		if (maximumInventory != '' && maximumInventory != null) {
+			$('#txtMaximumInventory').css('border-color', '#ccc');
+		} else {
+			$('#txtMaximumInventory').css('border-color', 'red');
+			valid = false;
+		}
+
+		var imagePath = $('#hdnImagePath').val();
+
+		var srcDisplay = $("#imgItem")[0].src;
+		var srcHidden = $("#hdnImagePath").val();
+
+		var word = "Uploads/";
+		if (srcDisplay.includes(word)) {
+			srcDisplay = srcDisplay.substr(srcDisplay.indexOf(word) + word.length, srcDisplay.length);
+		}
+
+		if (srcHidden.includes(word)) {
+			srcHidden = srcHidden.substr(srcHidden.indexOf(word) + word.length, srcHidden.length);
+		}
+
+		if ((itemUpload != '' && itemUpload != null) || (srcDisplay == srcHidden && srcDisplay != "")) {
+			$('#fileImage').css('border-color', '#ccc');
+		} else {
+			$('#fileImage').css('border-color', 'red');
+			valid = false;
+		}
+
+		if (!valid) {
+			$('#mdlMessageLabel').text('Error');
+			$('#mdlMessageContent').text('Check information and try again!');
+			$('#mdlMessage').modal('show');
+			return;
+		}
+
+		if (itemUpload != null) {
+			var newFileList = new DataTransfer();
+			newFileList.items.add(itemUpload);
+			document.getElementById('fileImage').files = newFileList.files;
+		}
+
+		$.ajax({
+			type: 'POST',
+			url: '/ItemMaster/Save',
+			data: new FormData($("#frmSave")[0]),
+			contentType: false,
+			processData: false,
+			success: function (data) {
+				debugger;
+				if (data.success) {
+					$('#mdlMessageLabel').text('Success');
+					$('#mdlMessageContent').text(data.message);
+					$('#mdlMessage').modal('show');
+					$('#hdnItemCode').val(itemCode);
+					$('#hdnImagePath').val(data.imagePath);
+					$("#imgItem")[0].src = "../Uploads/" + data.imagePath;
+					$('#fileImage').val("");
+					itemUpload = undefined;
+					$('#btnDelete').show();
+				}
+				else {
+					$('#mdlMessageLabel').text('Error');
+					$('#mdlMessageContent').text('Error while saving! ' + data.Error);
+					$('#mdlMessage').modal('show');
+				}
+			},
+			failure: function (err) {
+				$('#mdlMessageLabel').text('Error');
+				$('#mdlMessageContent').text('Action failed!');
+				$('#mdlMessage').modal('show');
+			},
+			error: function (xhr, ajaxOptions, thrownError) {
+				$('#mdlMessageLabel').text('Error');
+				$('#mdlMessageContent').text('Error occured! ' + xhr.responseText);
+				$('#mdlMessage').modal('show');
+			}
+		});
+	}
+</script>
